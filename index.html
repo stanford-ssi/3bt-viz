@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>3BT Profile</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+            #info { position: absolute; top: 1em; left: 1em; color: white; }
+		</style>
+	</head>
+	<body>
+        <div id="info">
+            T = <span id="T">0</span> sec
+            <button id="plus15">+15min</button>
+            <button id="plus1">+1min</button>
+            <button id="minus1">-1min</button>
+            <button id="minus15">-15min</button>
+            <br/>
+            Alt = <span id="alt">0</span> m
+            </div>
+		<script src="https://threejs.org/build/three.js"></script>
+		<script src="OrbitControls.js"></script>
+		<script src="angl.js"></script>
+		<script src="alts.js"></script>
+		<script>
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+
+
+var lights = [];
+lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+lights[ 3 ] = new THREE.AmbientLight( 0x222255 );
+
+lights[ 0 ].position.set( 0, 200, 0 );
+lights[ 1 ].position.set( 100, 200, 100 );
+lights[ 2 ].position.set( - 100, - 200, - 100 );
+
+scene.add( lights[ 0 ] );
+scene.add( lights[ 1 ] );
+scene.add( lights[ 2 ] );
+scene.add( lights[ 3 ] );
+
+var r_geometry = new THREE.CylinderGeometry(0.2, 0.2, 8.4, 5);
+r_geometry.applyMatrix( new THREE.Matrix4().makeTranslation(0, -8.4/2, 0) );
+var r_material = new THREE.MeshPhongMaterial( { color: 0xf0f0f0 } );
+var rocket = new THREE.Mesh( r_geometry, r_material );
+scene.add( rocket );
+
+
+var c_geometry = new THREE.ConeGeometry( Math.tan(10 * Math.PI/180) * 8.4, 8.4, 10, 1, true);
+c_geometry.applyMatrix( new THREE.Matrix4().makeTranslation(0, -8.4/2, 0) );
+var c_material = new THREE.MeshBasicMaterial( {color: 0xff5500, wireframe: true, transparent: true, opacity: 0.5} );
+var cone = new THREE.Mesh( c_geometry, c_material );
+cone.rotation.z = Math.PI/2;
+scene.add( cone );
+
+//rocket.position.y += 8.4/2;
+
+camera.position.x = -10;
+camera.lookAt(rocket.position);
+
+var controls = new THREE.OrbitControls( camera );
+
+var i = 0;
+
+var T = document.getElementById('T');
+var alt = document.getElementById('alt');
+var plus15 = document.getElementById('plus15');
+var minus15 = document.getElementById('minus15');
+var plus1 = document.getElementById('plus1');
+var minus1 = document.getElementById('minus1');
+
+plus15.addEventListener('click', function() {
+    i += 15 * 60 * 50;
+});
+minus15.addEventListener('click', function() {
+    i -= 15 * 60 * 50;
+    if (i < 0) i = 0;
+});
+plus1.addEventListener('click', function() {
+    i += 1 * 60 * 50;
+});
+minus1.addEventListener('click', function() {
+    i -= 1 * 60 * 50;
+    if (i < 0) i = 0;
+});
+
+
+function animate() {
+    i += 1;
+    i = i % alts.length;
+    // 2431
+    var w = angl[i][1];
+    var x = angl[i][2];
+    var z = angl[i][3]; // ssshhh
+    var y = angl[i][4];
+    rocket.quaternion.copy(new THREE.Quaternion(x, y, z, w));
+	requestAnimationFrame( animate );
+	renderer.render( scene, camera );
+    T.innerHTML = Math.floor(angl[i][0]);
+    alt.innerHTML = Math.floor(alts[i][1]);
+}
+animate();
+		</script>
+	</body>
+</html>
